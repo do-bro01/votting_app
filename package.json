@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "playwright test",
     "db:schema": "node --env-file=.env.local scripts/apply-sql.mjs db/schema.sql",
-    "typecheck": "next typegen && tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit",
+    "db:migrate": "node --env-file=.env.local scripts/apply-sql.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

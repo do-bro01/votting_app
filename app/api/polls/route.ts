@@ -6,7 +6,11 @@ export async function POST(request: Request) {
     return Response.json({ error: "요청 형식이 올바르지 않습니다." }, { status: 400 });
   }
 
-  const result = await createPoll({ question: body.question, options: body.options });
+  const result = await createPoll({
+    question: body.question,
+    options: body.options,
+    closesAt: body.closesAt,
+  });
   if (!result.ok) return Response.json({ error: result.error }, { status: 400 });
   return Response.json({ id: result.id }, { status: 201 });
 }

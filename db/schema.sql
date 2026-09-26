@@ -3,6 +3,7 @@
 create table if not exists polls (
   id uuid primary key default gen_random_uuid(),
   question text not null,
+  closes_at timestamptz,
   created_at timestamptz not null default now()
 );
 

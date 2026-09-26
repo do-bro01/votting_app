@@ -4,18 +4,20 @@
 export const MIN_OPTIONS = 2;
 export const MAX_OPTIONS = 5;
 
-export type NewPoll = { question: string; options: string[] };
+export type NewPoll = { question: string; options: string[]; closesAt: string | null };
 
 export type PollInputResult = { ok: true; poll: NewPoll } | { ok: false; error: string };
 
-export function validatePollInput(input: { question: unknown; options: unknown }): PollInputResult {
+const MALFORMED = "질문과 선택지 형식이 올바르지 않습니다.";
+const ISO_DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
+
+export function validatePollInput(
+  input: { question: unknown; options: unknown; closesAt?: unknown },
+  now: Date = new Date(),
+): PollInputResult {
   const { question, options } = input;
-  if (typeof question !== "string" || !Array.isArray(options)) {
-    return { ok: false, error: "질문과 선택지 형식이 올바르지 않습니다." };
-  }
-  if (!options.every((o): o is string => typeof o === "string")) {
-    return { ok: false, error: "질문과 선택지 형식이 올바르지 않습니다." };
-  }
+  if (typeof question !== "string" || !Array.isArray(options)) return { ok: false, error: MALFORMED };
+  if (!options.every((o): o is string => typeof o === "string")) return { ok: false, error: MALFORMED };
 
   const trimmedQuestion = question.trim();
   const trimmedOptions = options.map((o) => o.trim());
@@ -29,5 +31,24 @@ export function validatePollInput(input: { question: unknown; options: unknown }
     return { ok: false, error: "같은 선택지가 중복되었습니다." };
   }
 
-  return { ok: true, poll: { question: trimmedQuestion, options: trimmedOptions } };
+  const closesAt = validateClosesAt(input.closesAt, now);
+  if (!closesAt.ok) return closesAt;
+
+  return {
+    ok: true,
+    poll: { question: trimmedQuestion, options: trimmedOptions, closesAt: closesAt.value },
+  };
+}
+
+function validateClosesAt(
+  value: unknown,
+  now: Date,
+): { ok: true; value: string | null } | { ok: false; error: string } {
+  if (value === undefined || value === null || value === "") return { ok: true, value: null };
+  if (typeof value !== "string" || !ISO_DATE_TIME.test(value) || Number.isNaN(Date.parse(value))) {
+    return { ok: false, error: "마감 시각 형식이 올바르지 않습니다." };
+  }
+  const closesAt = new Date(value);
+  if (closesAt <= now) return { ok: false, error: "마감 시각은 지금 이후여야 합니다." };
+  return { ok: true, value: closesAt.toISOString() };
 }

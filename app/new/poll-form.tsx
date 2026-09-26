@@ -8,6 +8,7 @@ export function PollForm() {
   const router = useRouter();
   const [question, setQuestion] = useState("");
   const [options, setOptions] = useState<string[]>(Array(MIN_OPTIONS).fill(""));
+  const [closesAt, setClosesAt] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -17,7 +18,9 @@ export function PollForm() {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const checked = validatePollInput({ question, options });
+    // datetime-local 값은 브라우저 현지 시각이다. ISO(UTC)로 바꿔 보낸다.
+    const closesAtIso = closesAt ? new Date(closesAt).toISOString() : null;
+    const checked = validatePollInput({ question, options, closesAt: closesAtIso });
     if (!checked.ok) {
       setError(checked.error);
       return;
@@ -82,6 +85,17 @@ export function PollForm() {
           선택지 추가
         </button>
       </fieldset>
+
+      <label className="flex flex-col gap-2">
+        <span className="font-medium">마감 시각 (선택)</span>
+        <input
+          type="datetime-local"
+          value={closesAt}
+          onChange={(e) => setClosesAt(e.target.value)}
+          className="rounded-md border border-black/20 px-3 py-2 dark:border-white/25 dark:bg-zinc-900"
+        />
+        <span className="text-sm text-zinc-600 dark:text-zinc-400">비워 두면 마감 없이 계속 열려 있습니다.</span>
+      </label>
 
       {error && (
         <p role="alert" className="text-red-600 dark:text-red-400">

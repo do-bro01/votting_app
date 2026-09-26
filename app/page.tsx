@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { connection } from "next/server";
+import { formatKst } from "@/lib/format";
 import { listPolls } from "@/lib/polls";
 
 export default async function Home() {
@@ -26,6 +27,11 @@ export default async function Home() {
               <span data-testid="poll-question" className="font-medium">
                 {poll.question}
               </span>
+              {poll.closesAt && (
+                <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                  마감: {formatKst(poll.closesAt)}
+                </span>
+              )}
               <div className="flex gap-4 text-sm">
                 <Link href={`/polls/${poll.id}`} className="underline underline-offset-4">
                   투표하기

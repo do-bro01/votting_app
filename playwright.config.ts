@@ -15,6 +15,9 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${PORT}`,
     trace: "retain-on-failure",
+    // 마감 시각 입력(현지 시각)과 표시(한국 시간)를 결정적으로 검증하기 위해 고정한다.
+    timezoneId: "Asia/Seoul",
+    locale: "ko-KR",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {

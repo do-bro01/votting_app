@@ -16,10 +16,20 @@ export async function createPollViaApi(
   request: APIRequestContext,
   question: string,
   options: string[],
+  closesAt?: string,
 ): Promise<string> {
-  const res = await request.post("/api/polls", { data: { question, options } });
+  const res = await request.post("/api/polls", { data: { question, options, closesAt } });
   if (res.status() !== 201) {
     throw new Error(`투표 만들기 실패: ${res.status()} ${await res.text()}`);
   }
   return (await res.json()).id;
+}
+
+// 앱은 과거 마감 시각을 거부하므로, 마감된 투표는 DB에서 마감 시각을 과거로 바꿔 만든다.
+export async function closePoll(pollId: string) {
+  await db()`update polls set closes_at = now() - interval '1 minute' where id = ${pollId}`;
+}
+
+export function hoursFromNow(hours: number) {
+  return new Date(Date.now() + hours * 3_600_000).toISOString();
 }
