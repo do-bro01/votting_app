@@ -1,21 +1,27 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import { ClosingTime } from "@/components/closing-time";
+import { isOperator } from "@/lib/operator";
 import { listPolls } from "@/lib/polls";
 
 export default async function Home() {
   await connection();
-  const polls = await listPolls();
+  const [polls, operator] = await Promise.all([listPolls(), isOperator()]);
 
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-semibold">투표 목록</h1>
       {polls.length === 0 ? (
         <p className="text-zinc-600 dark:text-zinc-400">
-          아직 투표가 없습니다.{" "}
-          <Link href="/new" className="underline underline-offset-4">
-            투표 만들기
-          </Link>
+          아직 투표가 없습니다.
+          {operator && (
+            <>
+              {" "}
+              <Link href="/new" className="underline underline-offset-4">
+                투표 만들기
+              </Link>
+            </>
+          )}
         </p>
       ) : (
         <ul className="flex flex-col gap-3">
