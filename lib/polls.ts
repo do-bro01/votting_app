@@ -65,3 +65,33 @@ export async function getPoll(id: string): Promise<Poll | null> {
     options: options.map((o) => ({ id: o.id, label: o.label })),
   };
 }
+
+export type PollResults = PollSummary & {
+  totalVotes: number;
+  options: { id: string; label: string; votes: number; percent: number }[];
+};
+
+export async function getResults(id: string): Promise<PollResults | null> {
+  if (!isUuid(id)) return null;
+  const sql = db();
+  const [polls, options] = await sql.transaction([
+    sql`select id, question, created_at from polls where id = ${id}`,
+    sql`select id, label, vote_count from options where poll_id = ${id} order by position`,
+  ]);
+  const poll = polls[0];
+  if (!poll) return null;
+
+  const totalVotes = options.reduce((sum, o) => sum + o.vote_count, 0);
+  return {
+    id: poll.id,
+    question: poll.question,
+    createdAt: new Date(poll.created_at).toISOString(),
+    totalVotes,
+    options: options.map((o) => ({
+      id: o.id,
+      label: o.label,
+      votes: o.vote_count,
+      percent: totalVotes === 0 ? 0 : Math.round((o.vote_count / totalVotes) * 100),
+    })),
+  };
+}
