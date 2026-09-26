@@ -12,7 +12,7 @@ function operatorPassword() {
   return process.env.ADMIN_TOKEN ?? "";
 }
 
-function sessionToken(password: string) {
+function sessionSignature(password: string) {
   return createHmac("sha256", password).update("operator-session").digest("hex");
 }
 
@@ -32,13 +32,19 @@ export function isOperatorPassword(input: string) {
 export async function isOperator() {
   const password = operatorPassword();
   if (password === "") return false;
-  const token = (await cookies()).get(COOKIE_NAME)?.value;
-  return token !== undefined && safeEqual(token, sessionToken(password));
+  const signature = (await cookies()).get(COOKIE_NAME)?.value;
+  return signature !== undefined && safeEqual(signature, sessionSignature(password));
+}
+
+// 운영자만 쓸 수 있는 API 앞에서 부른다. 운영자가 아니면 돌려줄 401 응답, 운영자면 null.
+export async function operatorRequired(): Promise<Response | null> {
+  if (await isOperator()) return null;
+  return Response.json({ error: "운영자 로그인이 필요합니다." }, { status: 401 });
 }
 
 export async function startOperatorSession() {
   // expires·maxAge를 주지 않아 브라우저를 닫으면 사라지는 세션 쿠키가 된다.
-  (await cookies()).set(COOKIE_NAME, sessionToken(operatorPassword()), {
+  (await cookies()).set(COOKIE_NAME, sessionSignature(operatorPassword()), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -51,8 +57,12 @@ export async function endOperatorSession() {
 }
 
 // 로그인 뒤 돌아갈 주소. 같은 사이트 안의 경로만 허용해 외부 사이트로 보내지 않는다.
+// 앞 글자만 보면 "/\t/example.com"처럼 URL 파서가 탭을 지워 "//example.com"이 되는 경우를 놓치므로,
+// 브라우저와 같은 규칙으로 파싱한 뒤 출처(origin)가 바뀌지 않았는지 확인한다.
 export function safeReturnPath(value: unknown) {
   if (typeof value !== "string" || !value.startsWith("/")) return "/";
-  if (value.startsWith("//") || value.startsWith("/\\")) return "/";
-  return value;
+  const base = "http://same-site.invalid";
+  const url = new URL(value, base);
+  if (url.origin !== base) return "/";
+  return `${url.pathname}${url.search}${url.hash}`;
 }

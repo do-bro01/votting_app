@@ -1,4 +1,4 @@
-import { isOperator } from "@/lib/operator";
+import { operatorRequired } from "@/lib/operator";
 import { deletePoll, getPoll } from "@/lib/polls";
 
 export async function GET(_request: Request, ctx: RouteContext<"/api/polls/[id]">) {
@@ -9,9 +9,8 @@ export async function GET(_request: Request, ctx: RouteContext<"/api/polls/[id]"
 }
 
 export async function DELETE(_request: Request, ctx: RouteContext<"/api/polls/[id]">) {
-  if (!(await isOperator())) {
-    return Response.json({ error: "운영자 로그인이 필요합니다." }, { status: 401 });
-  }
+  const denied = await operatorRequired();
+  if (denied) return denied;
   const { id } = await ctx.params;
   const result = await deletePoll(id);
   if (result === "poll-not-found") {

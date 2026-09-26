@@ -55,7 +55,7 @@ Status: ready-for-agent
   - 비밀번호가 맞는가(입력 문자열) → boolean. `ADMIN_TOKEN`이 비어 있으면 항상 false. 비교는 해시 후 상수 시간 비교.
   - 현재 요청이 운영자인가() → boolean (요청 쿠키를 읽음)
   - 로그인 쿠키 설정 / 삭제
-  - 돌아갈 주소 정리(입력) → `/`로 시작하고 `//`로 시작하지 않는 경로만 허용, 아니면 `/`
+  - 돌아갈 주소 정리(입력) → `/`로 시작하고, 브라우저와 같은 규칙으로 URL 파싱했을 때 출처가 바뀌지 않는 경로만 허용, 아니면 `/`. (code-review에서 `/`+탭+`/example.com` 우회를 발견해 앞 글자 검사 대신 URL 파싱으로 확정)
 - **세션 쿠키**: 이름 하나, 값은 비밀번호 자체가 아니라 `ADMIN_TOKEN`으로 만든 HMAC-SHA256 서명값. `expires`/`maxAge` 없음(세션 쿠키), `httpOnly`, `sameSite: lax`, 프로덕션에서 `secure`, `path: /`. 검증은 같은 값을 다시 계산해 상수 시간 비교 → 비밀번호를 바꾸면 기존 쿠키가 모두 무효.
 - **API (Route Handlers, JSON)**
   - `POST /api/operator/login` body `{ password: string }` → 200(쿠키 설정) / 400(빈 값·형식 오류) / 401(틀림)

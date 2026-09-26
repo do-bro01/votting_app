@@ -63,8 +63,8 @@ test.describe("운영자 로그인", () => {
     await expect(page).toHaveURL(/\/new$/);
   });
 
-  for (const next of ["https://example.com", "//example.com", "/\\example.com"]) {
-    test(`외부 주소(${next})는 무시하고 목록으로 간다`, async ({ page }) => {
+  for (const next of ["https://example.com", "//example.com", "/\\example.com", "/\t/example.com"]) {
+    test(`외부 주소(${JSON.stringify(next)})는 무시하고 목록으로 간다`, async ({ page }) => {
       await page.goto(`/login?next=${encodeURIComponent(next)}`);
       await login(page, PASSWORD);
       await expect(page).toHaveURL(/^http:\/\/localhost:\d+\/$/);
