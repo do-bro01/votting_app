@@ -53,7 +53,7 @@
 | --- | --- |
 | `npm run dev` | 개발 서버 실행 |
 | `npm run build` / `npm start` | 프로덕션 빌드 / 실행 |
-| `npm run test` | Playwright E2E 전체 실행 (개발 서버를 3100 포트로 자동으로 띄움) |
+| `npm run test` | Playwright E2E 전체 실행 (배포본과 같은 프로덕션 빌드를 만들어 3100 포트로 자동으로 띄움) |
 | `npm run typecheck` | 라우트 타입 생성 + TypeScript 검사 |
 | `npm run lint` | ESLint |
 | `npm run db:schema` | `db/schema.sql`을 `.env.local`의 DB에 적용 |

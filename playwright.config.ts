@@ -30,9 +30,11 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `npx next dev -p ${PORT}`,
+    // 배포본과 같은 프로덕션 빌드로 테스트한다. 링크 미리 불러오기(prefetch)처럼
+    // 개발 서버에서는 일어나지 않는 동작 때문에 생기는 버그를 잡기 위해서다.
+    command: `npx next build && npx next start -p ${PORT}`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
+    timeout: 300_000,
   },
 });

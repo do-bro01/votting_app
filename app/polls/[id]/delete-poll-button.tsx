@@ -20,8 +20,8 @@ export function DeletePollButton({ pollId }: { pollId: string }) {
       setDeleting(false);
       return;
     }
+    // 목록은 요청마다 새로 그리므로 이동만 한다. refresh를 같이 부르면 지워진 투표 화면을 다시 그려 이동을 덮어쓸 수 있다.
     router.push("/");
-    router.refresh();
   }
 
   if (!confirming) {

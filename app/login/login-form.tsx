@@ -1,10 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export function LoginForm({ returnPath }: { returnPath: string }) {
-  const router = useRouter();
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -29,9 +27,10 @@ export function LoginForm({ returnPath }: { returnPath: string }) {
       setSubmitting(false);
       return;
     }
-    // 상단 메뉴(서버에서 그림)가 입장한 상태로 바뀌도록 이동 후 새로 그린다.
-    router.replace(returnPath);
-    router.refresh();
+    // 입장 상태가 바뀌었으니 전체 페이지를 새로 불러온다.
+    // router.replace + router.refresh를 연달아 부르면 프로덕션에서 refresh가 현재 주소(/login)를
+    // 다시 그려 이동을 덮어쓴다. 입장 전에 미리 불러 둔(prefetch) 화면이 남을 여지도 없앤다.
+    window.location.assign(returnPath);
   }
 
   return (
