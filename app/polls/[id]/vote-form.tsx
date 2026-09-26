@@ -2,10 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import type { PollOption } from "@/lib/polls";
 
 type Props = {
   pollId: string;
-  options: { id: string; label: string }[];
+  options: PollOption[];
 };
 
 export function VoteForm({ pollId, options }: Props) {
@@ -30,7 +31,7 @@ export function VoteForm({ pollId, options }: Props) {
     });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      setError(body.error ?? "투표하지 못했습니다.");
+      setError(body.error ?? "표를 던지지 못했습니다.");
       setSubmitting(false);
       return;
     }

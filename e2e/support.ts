@@ -12,7 +12,7 @@ export function db() {
   return neon(process.env.DATABASE_URL!);
 }
 
-export async function createPoll(
+export async function createPollViaApi(
   request: APIRequestContext,
   question: string,
   options: string[],

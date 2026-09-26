@@ -11,7 +11,7 @@ export default async function ResultsPage({ params }: PageProps<"/polls/[id]/res
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-semibold">{results.question}</h1>
       {results.totalVotes === 0 && (
-        <p className="text-zinc-600 dark:text-zinc-400">아직 투표가 없습니다.</p>
+        <p className="text-zinc-600 dark:text-zinc-400">아직 표가 없습니다.</p>
       )}
       <ul className="flex flex-col gap-2">
         {results.options.map((option) => (

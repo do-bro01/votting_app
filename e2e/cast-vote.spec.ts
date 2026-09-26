@@ -1,5 +1,5 @@
 import { expect, test, type APIRequestContext } from "@playwright/test";
-import { createPoll, testQuestion } from "./support";
+import { createPollViaApi, testQuestion } from "./support";
 
 async function optionIds(request: APIRequestContext, pollId: string): Promise<string[]> {
   const poll = await (await request.get(`/api/polls/${pollId}`)).json();
@@ -8,7 +8,7 @@ async function optionIds(request: APIRequestContext, pollId: string): Promise<st
 
 test.describe("표 던지기", () => {
   test("선택지 하나를 골라 제출하면 결과 화면으로 이동하고 표가 반영된다", async ({ page, request }) => {
-    const id = await createPoll(request, testQuestion("표 던지기"), ["치킨", "피자"]);
+    const id = await createPollViaApi(request, testQuestion("표 던지기"), ["치킨", "피자"]);
 
     await page.goto(`/polls/${id}`);
     await page.getByRole("radio", { name: "피자" }).check();
@@ -20,7 +20,7 @@ test.describe("표 던지기", () => {
   });
 
   test("선택지는 하나만 고를 수 있다", async ({ page, request }) => {
-    const id = await createPoll(request, testQuestion("단일 선택"), ["가", "나"]);
+    const id = await createPollViaApi(request, testQuestion("단일 선택"), ["가", "나"]);
 
     await page.goto(`/polls/${id}`);
     await page.getByRole("radio", { name: "가" }).check();
@@ -30,7 +30,7 @@ test.describe("표 던지기", () => {
   });
 
   test("아무것도 고르지 않고 제출하면 안내 문구가 나온다", async ({ page, request }) => {
-    const id = await createPoll(request, testQuestion("미선택 제출"), ["가", "나"]);
+    const id = await createPollViaApi(request, testQuestion("미선택 제출"), ["가", "나"]);
 
     await page.goto(`/polls/${id}`);
     await page.getByRole("button", { name: "투표하기" }).click();
@@ -41,8 +41,8 @@ test.describe("표 던지기", () => {
 
 test.describe("표 던지기 API", () => {
   test("다른 투표의 선택지, 없는 선택지, 형식이 잘못된 요청은 400", async ({ request }) => {
-    const id = await createPoll(request, testQuestion("API 선택지 검증"), ["가", "나"]);
-    const otherId = await createPoll(request, testQuestion("API 다른 투표"), ["다", "라"]);
+    const id = await createPollViaApi(request, testQuestion("API 선택지 검증"), ["가", "나"]);
+    const otherId = await createPollViaApi(request, testQuestion("API 다른 투표"), ["다", "라"]);
     const [otherOption] = await optionIds(request, otherId);
 
     const cases = [
@@ -68,7 +68,7 @@ test.describe("표 던지기 API", () => {
   });
 
   test("동시에 던진 표가 하나도 사라지지 않는다", async ({ page, request }) => {
-    const id = await createPoll(request, testQuestion("동시 투표"), ["가", "나"]);
+    const id = await createPollViaApi(request, testQuestion("동시 투표"), ["가", "나"]);
     const [first] = await optionIds(request, id);
 
     const responses = await Promise.all(

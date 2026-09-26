@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createPoll, testQuestion } from "./support";
+import { createPollViaApi, testQuestion } from "./support";
 
 test.describe("투표 만들기", () => {
   test("질문과 선택지로 투표를 만들면 투표하기 화면에서 입력 순서대로 보인다", async ({ page }) => {
@@ -60,7 +60,7 @@ test.describe("투표 만들기", () => {
 
   test("새 투표는 목록에 보이고 투표하기·결과 보기 링크가 있다", async ({ page, request }) => {
     const question = testQuestion("목록 확인");
-    const id = await createPoll(request, question, ["가", "나"]);
+    const id = await createPollViaApi(request, question, ["가", "나"]);
 
     await page.goto("/");
     const item = page.getByRole("listitem").filter({ hasText: question });
@@ -75,8 +75,8 @@ test.describe("투표 만들기", () => {
   test("목록은 최신순이다", async ({ page, request }) => {
     const older = testQuestion("먼저 만든 투표");
     const newer = testQuestion("나중에 만든 투표");
-    await createPoll(request, older, ["가", "나"]);
-    await createPoll(request, newer, ["가", "나"]);
+    await createPollViaApi(request, older, ["가", "나"]);
+    await createPollViaApi(request, newer, ["가", "나"]);
 
     await page.goto("/");
     const questions = await page.getByTestId("poll-question").allTextContents();
@@ -112,7 +112,7 @@ test.describe("투표 만들기 API", () => {
 
   test("저장값은 앞뒤 공백이 제거되고 선택지는 입력 순서대로 조회된다", async ({ request }) => {
     const question = testQuestion("공백 제거");
-    const id = await createPoll(request, `  ${question}  `, [" 다 ", "가", " 나"]);
+    const id = await createPollViaApi(request, `  ${question}  `, [" 다 ", "가", " 나"]);
 
     const res = await request.get(`/api/polls/${id}`);
     expect(res.status()).toBe(200);

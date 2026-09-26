@@ -16,17 +16,38 @@ function isUuid(value: string) {
 
 export type PollSummary = { id: string; question: string; createdAt: string };
 
-export type Poll = PollSummary & { options: { id: string; label: string }[] };
+export type PollOption = { id: string; label: string };
+
+export type Poll = PollSummary & { options: PollOption[] };
+
+function toSummary(row: Record<string, unknown>): PollSummary {
+  return {
+    id: row.id as string,
+    question: row.question as string,
+    createdAt: new Date(row.created_at as string).toISOString(),
+  };
+}
+
+// 투표 하나와 그 선택지(입력 순서)를 함께 읽는다. 없으면 null.
+async function findPollWithOptions(id: string) {
+  if (!isUuid(id)) return null;
+  const sql = db();
+  const [polls, options] = await sql.transaction([
+    sql`select id, question, created_at from polls where id = ${id}`,
+    sql`select id, label, vote_count from options where poll_id = ${id} order by position`,
+  ]);
+  if (!polls[0]) return null;
+  return {
+    summary: toSummary(polls[0]),
+    options: options.map((o) => ({ id: o.id as string, label: o.label as string, votes: o.vote_count as number })),
+  };
+}
 
 export async function listPolls(): Promise<PollSummary[]> {
   const rows = await db()`
     select id, question, created_at from polls order by created_at desc, id
   `;
-  return rows.map((r) => ({
-    id: r.id,
-    question: r.question,
-    createdAt: new Date(r.created_at).toISOString(),
-  }));
+  return rows.map(toSummary);
 }
 
 export async function createPoll(input: {
@@ -50,48 +71,27 @@ export async function createPoll(input: {
 }
 
 export async function getPoll(id: string): Promise<Poll | null> {
-  if (!isUuid(id)) return null;
-  const sql = db();
-  const [polls, options] = await sql.transaction([
-    sql`select id, question, created_at from polls where id = ${id}`,
-    sql`select id, label from options where poll_id = ${id} order by position`,
-  ]);
-  const poll = polls[0];
-  if (!poll) return null;
-  return {
-    id: poll.id,
-    question: poll.question,
-    createdAt: new Date(poll.created_at).toISOString(),
-    options: options.map((o) => ({ id: o.id, label: o.label })),
-  };
+  const found = await findPollWithOptions(id);
+  if (!found) return null;
+  return { ...found.summary, options: found.options.map(({ id, label }) => ({ id, label })) };
 }
 
 export type PollResults = PollSummary & {
   totalVotes: number;
-  options: { id: string; label: string; votes: number; percent: number }[];
+  options: (PollOption & { votes: number; percent: number })[];
 };
 
 export async function getResults(id: string): Promise<PollResults | null> {
-  if (!isUuid(id)) return null;
-  const sql = db();
-  const [polls, options] = await sql.transaction([
-    sql`select id, question, created_at from polls where id = ${id}`,
-    sql`select id, label, vote_count from options where poll_id = ${id} order by position`,
-  ]);
-  const poll = polls[0];
-  if (!poll) return null;
+  const found = await findPollWithOptions(id);
+  if (!found) return null;
 
-  const totalVotes = options.reduce((sum, o) => sum + o.vote_count, 0);
+  const totalVotes = found.options.reduce((sum, o) => sum + o.votes, 0);
   return {
-    id: poll.id,
-    question: poll.question,
-    createdAt: new Date(poll.created_at).toISOString(),
+    ...found.summary,
     totalVotes,
-    options: options.map((o) => ({
-      id: o.id,
-      label: o.label,
-      votes: o.vote_count,
-      percent: totalVotes === 0 ? 0 : Math.round((o.vote_count / totalVotes) * 100),
+    options: found.options.map((o) => ({
+      ...o,
+      percent: totalVotes === 0 ? 0 : Math.round((o.votes / totalVotes) * 100),
     })),
   };
 }
