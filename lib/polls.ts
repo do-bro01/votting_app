@@ -133,3 +133,10 @@ export async function castVote(pollId: string, optionId: unknown): Promise<CastV
   if (polls.length === 0) return "poll-not-found";
   return polls[0].is_closed ? "poll-closed" : "option-not-in-poll";
 }
+
+// 운영자만 부른다(ADR-0003). 선택지는 on delete cascade로 함께 지워진다.
+export async function deletePoll(id: string): Promise<"deleted" | "poll-not-found"> {
+  if (!isUuid(id)) return "poll-not-found";
+  const rows = await db()`delete from polls where id = ${id} returning id`;
+  return rows.length > 0 ? "deleted" : "poll-not-found";
+}
