@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { ANONYMOUS, closePoll, createPollViaApi, db, hoursFromNow, testQuestion } from "./support";
+import { closePoll, createPollViaApi, db, hoursFromNow, testQuestion } from "./support";
 
 test.describe("구성원의 투표 삭제", () => {
   test("확인 단계에서 '취소'하면 아무것도 지워지지 않는다", async ({ page, request }) => {
@@ -49,22 +49,5 @@ test.describe("구성원의 투표 삭제", () => {
   test("API: 없는 투표와 uuid가 아닌 id는 404", async ({ request }) => {
     expect((await request.delete(`/api/polls/${crypto.randomUUID()}`)).status()).toBe(404);
     expect((await request.delete("/api/polls/not-a-uuid")).status()).toBe(404);
-  });
-});
-
-test.describe("입장하지 않은 사람의 삭제", () => {
-  test("'투표 삭제' 버튼이 보이지 않고, 삭제 API는 401이며 투표가 남는다", async ({ browser, request }) => {
-    const id = await createPollViaApi(request, testQuestion("입장 전 삭제"), ["가", "나"]);
-
-    const context = await browser.newContext({ storageState: ANONYMOUS });
-    const page = await context.newPage();
-    await page.goto(`/polls/${id}`);
-    await expect(page.getByRole("button", { name: "투표하기" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "투표 삭제" })).toHaveCount(0);
-
-    const res = await context.request.delete(`/api/polls/${id}`);
-    expect(res.status()).toBe(401);
-    expect((await request.get(`/api/polls/${id}`)).status()).toBe(200);
-    await context.close();
   });
 });

@@ -34,17 +34,13 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             <Link href="/" className="text-lg font-semibold">
               투표 앱
             </Link>
-            {member ? (
+            {member && (
               <nav className="flex items-center gap-4">
                 <Link href="/new" className="text-sm underline underline-offset-4">
                   투표 만들기
                 </Link>
                 <LogoutButton />
               </nav>
-            ) : (
-              <Link href="/login" className="text-sm underline underline-offset-4">
-                입장
-              </Link>
             )}
           </div>
         </header>

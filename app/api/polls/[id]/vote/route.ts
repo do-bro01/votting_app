@@ -1,6 +1,10 @@
+import { memberRequired } from "@/lib/member-session";
 import { castVote } from "@/lib/polls";
 
 export async function POST(request: Request, ctx: RouteContext<"/api/polls/[id]/vote">) {
+  const denied = await memberRequired();
+  if (denied) return denied;
+
   const { id } = await ctx.params;
   const body = await request.json().catch(() => null);
 

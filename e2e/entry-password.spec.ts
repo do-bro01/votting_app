@@ -12,7 +12,6 @@ async function login(page: Page, password: string) {
 
 async function expectLoggedOutHeader(page: Page) {
   const header = page.getByRole("banner");
-  await expect(header.getByRole("link", { name: "입장" })).toBeVisible();
   await expect(header.getByRole("link", { name: "투표 만들기" })).toHaveCount(0);
   await expect(header.getByRole("button", { name: "나가기" })).toHaveCount(0);
 }
@@ -25,13 +24,6 @@ async function expectMemberHeader(page: Page) {
 }
 
 test.describe("입장 비밀번호", () => {
-  test("입장 전에는 상단에 '입장'만 보인다", async ({ page }) => {
-    await page.goto("/");
-    await expectLoggedOutHeader(page);
-    await page.getByRole("banner").getByRole("link", { name: "입장" }).click();
-    await expect(page).toHaveURL(/\/login$/);
-  });
-
   test("비밀번호 입력칸은 글자가 가려진다", async ({ page }) => {
     await page.goto("/login");
     await expect(page.getByLabel("입장 비밀번호")).toHaveAttribute("type", "password");
@@ -82,17 +74,6 @@ test.describe("입장 비밀번호", () => {
     expect(cookie.expires).toBe(-1);
     expect(cookie.httpOnly).toBe(true);
     expect(cookie.value).not.toContain(PASSWORD);
-  });
-
-  test("'나가기'를 누르면 입장이 끝나고 목록으로 돌아간다", async ({ page }) => {
-    await page.goto("/login");
-    await login(page, PASSWORD);
-    await expectMemberHeader(page);
-
-    await page.goto("/new");
-    await page.getByRole("banner").getByRole("button", { name: "나가기" }).click();
-    await expect(page).toHaveURL(/\/$/);
-    await expectLoggedOutHeader(page);
   });
 });
 

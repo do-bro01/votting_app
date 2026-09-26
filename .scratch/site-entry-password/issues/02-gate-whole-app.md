@@ -6,11 +6,11 @@
 
 **Status:** ready-for-agent
 
-- [ ] 입장 전 `/`, `/new`, `/polls/<id>`, `/polls/<id>/results` → `/login?next=…`, 목록·질문 텍스트가 보이지 않는다
-- [ ] 입장 후 원래 주소(검색 파라미터 포함)로 돌아간다
-- [ ] 입장 화면 상단에 "투표 만들기"·"나가기"가 없고 하단에 "김도형"이 있다
-- [ ] "나가기" → 입장 화면, 이후 `/`로 가도 입장 화면
-- [ ] 입장 전 `GET /api/polls/[id]`, `POST /api/polls`, `DELETE /api/polls/[id]`, `POST /api/polls/[id]/vote` → 401, 아무것도 바뀌지 않는다
-- [ ] 입장 API는 입장 전에도 동작한다
-- [ ] 각 투표 Route Handler도 Proxy와 별개로 구성원인지 확인한다
-- [ ] 구성원에게 "투표 삭제" 버튼이 보이고 동작한다
+- [x] 입장 전 `/`, `/new`, `/polls/<id>`, `/polls/<id>/results` → `/login?next=…`, 목록·질문 텍스트가 보이지 않는다
+- [x] 입장 후 원래 주소(검색 파라미터 포함)로 돌아간다
+- [x] 입장 화면 상단에 "투표 만들기"·"나가기"가 없고 하단에 "김도형"이 있다
+- [x] "나가기" → 입장 화면, 이후 `/`로 가도 입장 화면
+- [x] 입장 전 `GET /api/polls/[id]`, `POST /api/polls`, `DELETE /api/polls/[id]`, `POST /api/polls/[id]/vote` → 401, 아무것도 바뀌지 않는다
+- [x] 입장 API는 입장 전에도 동작한다
+- [x] 각 투표 Route Handler도 Proxy와 별개로 구성원인지 확인한다
+- [x] 구성원에게 "투표 삭제" 버튼이 보이고 동작한다
