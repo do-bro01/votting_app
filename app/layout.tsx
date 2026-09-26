@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import { LogoutButton } from "@/components/logout-button";
-import { isOperator } from "@/lib/operator";
+import { isMember } from "@/lib/member-session";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const operator = await isOperator();
+  const member = await isMember();
 
   return (
     <html
@@ -34,7 +34,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             <Link href="/" className="text-lg font-semibold">
               투표 앱
             </Link>
-            {operator ? (
+            {member ? (
               <nav className="flex items-center gap-4">
                 <Link href="/new" className="text-sm underline underline-offset-4">
                   투표 만들기
@@ -43,7 +43,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
               </nav>
             ) : (
               <Link href="/login" className="text-sm underline underline-offset-4">
-                운영자 로그인
+                입장
               </Link>
             )}
           </div>

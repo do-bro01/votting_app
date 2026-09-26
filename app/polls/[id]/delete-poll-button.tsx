@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-// 운영자에게만 보인다. 바로 지우지 않고 확인 단계를 거친다.
+// 구성원에게만 보인다. 바로 지우지 않고 확인 단계를 거친다.
 export function DeletePollButton({ pollId }: { pollId: string }) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);

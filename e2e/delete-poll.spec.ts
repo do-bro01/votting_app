@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { ANONYMOUS, closePoll, createPollViaApi, db, hoursFromNow, testQuestion } from "./support";
 
-test.describe("운영자의 투표 삭제", () => {
+test.describe("구성원의 투표 삭제", () => {
   test("확인 단계에서 '취소'하면 아무것도 지워지지 않는다", async ({ page, request }) => {
     const id = await createPollViaApi(request, testQuestion("삭제 취소"), ["가", "나"]);
 
@@ -52,9 +52,9 @@ test.describe("운영자의 투표 삭제", () => {
   });
 });
 
-test.describe("로그인하지 않은 사람의 삭제", () => {
+test.describe("입장하지 않은 사람의 삭제", () => {
   test("'투표 삭제' 버튼이 보이지 않고, 삭제 API는 401이며 투표가 남는다", async ({ browser, request }) => {
-    const id = await createPollViaApi(request, testQuestion("비로그인 삭제"), ["가", "나"]);
+    const id = await createPollViaApi(request, testQuestion("입장 전 삭제"), ["가", "나"]);
 
     const context = await browser.newContext({ storageState: ANONYMOUS });
     const page = await context.newPage();

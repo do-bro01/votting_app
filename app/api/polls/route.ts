@@ -1,8 +1,8 @@
-import { operatorRequired } from "@/lib/operator";
+import { memberRequired } from "@/lib/member-session";
 import { createPoll } from "@/lib/polls";
 
 export async function POST(request: Request) {
-  const denied = await operatorRequired();
+  const denied = await memberRequired();
   if (denied) return denied;
 
   const body = await request.json().catch(() => null);

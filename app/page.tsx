@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import { ClosingTime } from "@/components/closing-time";
-import { isOperator } from "@/lib/operator";
+import { isMember } from "@/lib/member-session";
 import { listPolls } from "@/lib/polls";
 
 export default async function Home() {
   await connection();
-  const [polls, operator] = await Promise.all([listPolls(), isOperator()]);
+  const [polls, member] = await Promise.all([listPolls(), isMember()]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -14,7 +14,7 @@ export default async function Home() {
       {polls.length === 0 ? (
         <p className="text-zinc-600 dark:text-zinc-400">
           아직 투표가 없습니다.
-          {operator && (
+          {member && (
             <>
               {" "}
               <Link href="/new" className="underline underline-offset-4">

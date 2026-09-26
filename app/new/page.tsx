@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
-import { isOperator } from "@/lib/operator";
+import { isMember } from "@/lib/member-session";
 import { PollForm } from "./poll-form";
 
 export default async function NewPollPage() {
-  if (!(await isOperator())) redirect(`/login?next=${encodeURIComponent("/new")}`);
+  if (!(await isMember())) redirect(`/login?next=${encodeURIComponent("/new")}`);
 
   return (
     <div className="flex flex-col gap-6">

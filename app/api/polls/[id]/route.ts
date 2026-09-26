@@ -1,4 +1,4 @@
-import { operatorRequired } from "@/lib/operator";
+import { memberRequired } from "@/lib/member-session";
 import { deletePoll, getPoll } from "@/lib/polls";
 
 export async function GET(_request: Request, ctx: RouteContext<"/api/polls/[id]">) {
@@ -9,7 +9,7 @@ export async function GET(_request: Request, ctx: RouteContext<"/api/polls/[id]"
 }
 
 export async function DELETE(_request: Request, ctx: RouteContext<"/api/polls/[id]">) {
-  const denied = await operatorRequired();
+  const denied = await memberRequired();
   if (denied) return denied;
   const { id } = await ctx.params;
   const result = await deletePoll(id);
