@@ -21,7 +21,7 @@ test.describe("마감 시각 정하기", () => {
   });
 
   test("마감 시각 없이 만든 투표는 마감 표시가 없다", async ({ page, request }) => {
-    const question = testQuestion("기한 없는 투표");
+    const question = testQuestion("기한 미정");
     const id = await createPollViaApi(request, question, ["가", "나"]);
 
     await page.goto(`/polls/${id}`);
@@ -43,7 +43,13 @@ test.describe("마감 시각 정하기", () => {
   });
 
   test("API: 과거·형식 오류 마감 시각은 400", async ({ request }) => {
-    for (const closesAt of ["2020-01-01T00:00:00Z", "not-a-date", 123]) {
+    for (const closesAt of [
+      "2020-01-01T00:00:00Z",
+      "not-a-date",
+      123,
+      "2030-02-31T00:00:00Z", // 없는 날짜
+      "2030-01-15T14:30", // 시간대 없음
+    ]) {
       const res = await request.post("/api/polls", {
         data: { question: testQuestion("API 마감 검증"), options: ["가", "나"], closesAt },
       });
@@ -63,5 +69,22 @@ test.describe("마감 시각 정하기", () => {
     const b = await (await request.get(`/api/polls/${without}`)).json();
     expect(b.closesAt).toBeNull();
     expect(b.isClosed).toBe(false);
+  });
+});
+
+test.describe("다른 시간대의 브라우저", () => {
+  test.use({ timezoneId: "America/New_York" });
+
+  test("현지 시각으로 넣은 마감 시각이 한국 시간으로 바뀌어 보인다", async ({ page }) => {
+    await page.goto("/new");
+    await page.getByLabel("질문").fill(testQuestion("뉴욕에서 만든 투표"));
+    await page.getByLabel("선택지 1", { exact: true }).fill("가");
+    await page.getByLabel("선택지 2", { exact: true }).fill("나");
+    // 뉴욕 2030-01-15 14:30(UTC-5) = 한국 2030-01-16 04:30
+    await page.getByLabel("마감 시각 (선택)").fill("2030-01-15T14:30");
+    await page.getByRole("button", { name: "투표 만들기" }).click();
+
+    await expect(page).toHaveURL(/\/polls\/[0-9a-f-]{36}$/);
+    await expect(page.getByText("마감: 2030. 1. 16. 오전 4:30")).toBeVisible();
   });
 });

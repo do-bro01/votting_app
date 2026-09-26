@@ -36,8 +36,10 @@ function toSummary(row: Record<string, unknown>): PollSummary {
   };
 }
 
-// 마감 여부는 DB 시각(now()) 기준으로 판단한다.
-const POLL_COLUMNS = "id, question, created_at, closes_at, (closes_at is not null and closes_at <= now()) as is_closed";
+// 마감된 투표(Closed Poll) 규칙. DB 시각(now()) 기준이며, 조회와 표 던지기가 같은 규칙을 쓴다.
+// 값이 아닌 SQL 조각이라 태그 템플릿 대신 sql.query로 끼워 넣는다 (ADR-0002).
+const IS_CLOSED = "(closes_at is not null and closes_at <= now())";
+const POLL_COLUMNS = `id, question, created_at, closes_at, ${IS_CLOSED} as is_closed`;
 
 // 투표 하나와 그 선택지(입력 순서)를 함께 읽는다. 없으면 null.
 async function findPollWithOptions(id: string) {
@@ -117,15 +119,13 @@ export async function castVote(pollId: string, optionId: unknown): Promise<CastV
   if (typeof optionId === "string" && isUuid(optionId)) {
     // 득표수는 DB 안에서 원자적으로 1 올린다. 동시에 던진 표도 사라지지 않는다.
     // 마감 확인도 같은 쿼리에서 해서, 확인과 증가 사이에 마감되어도 표가 들어가지 않는다.
-    const updated = await sql`
-      update options set vote_count = options.vote_count + 1
-      from polls
-      where options.id = ${optionId}
-        and options.poll_id = ${pollId}
-        and polls.id = options.poll_id
-        and (polls.closes_at is null or polls.closes_at > now())
-      returning options.id
-    `;
+    const updated = await sql.query(
+      `update options set vote_count = vote_count + 1
+       where id = $1 and poll_id = $2
+         and exists (select 1 from polls where polls.id = options.poll_id and not ${IS_CLOSED})
+       returning id`,
+      [optionId, pollId],
+    );
     if (updated.length > 0) return "ok";
   }
 

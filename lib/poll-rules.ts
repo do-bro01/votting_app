@@ -9,7 +9,21 @@ export type NewPoll = { question: string; options: string[]; closesAt: string | 
 export type PollInputResult = { ok: true; poll: NewPoll } | { ok: false; error: string };
 
 const MALFORMED = "질문과 선택지 형식이 올바르지 않습니다.";
-const ISO_DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
+// 시간대(Z 또는 ±hh:mm)가 있는 ISO 8601만 받는다. 시간대가 없으면 서버 시간대에 따라 해석이 달라진다.
+const ISO_DATE_TIME = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})$/;
+
+// Date.parse는 2030-02-31을 3월 3일로 바꿔 버리므로, 달력에 있는 날짜·시각인지 따로 확인한다.
+function isRealDateTime(match: RegExpExecArray) {
+  const [year, month, day, hour, minute] = match.slice(1, 6).map(Number);
+  const d = new Date(Date.UTC(year, month - 1, day, hour, minute));
+  return (
+    d.getUTCFullYear() === year &&
+    d.getUTCMonth() === month - 1 &&
+    d.getUTCDate() === day &&
+    d.getUTCHours() === hour &&
+    d.getUTCMinutes() === minute
+  );
+}
 
 export function validatePollInput(
   input: { question: unknown; options: unknown; closesAt?: unknown },
@@ -45,10 +59,11 @@ function validateClosesAt(
   now: Date,
 ): { ok: true; value: string | null } | { ok: false; error: string } {
   if (value === undefined || value === null || value === "") return { ok: true, value: null };
-  if (typeof value !== "string" || !ISO_DATE_TIME.test(value) || Number.isNaN(Date.parse(value))) {
+  const match = typeof value === "string" ? ISO_DATE_TIME.exec(value) : null;
+  if (!match || !isRealDateTime(match) || Number.isNaN(Date.parse(match[0]))) {
     return { ok: false, error: "마감 시각 형식이 올바르지 않습니다." };
   }
-  const closesAt = new Date(value);
+  const closesAt = new Date(match[0]);
   if (closesAt <= now) return { ok: false, error: "마감 시각은 지금 이후여야 합니다." };
   return { ok: true, value: closesAt.toISOString() };
 }

@@ -39,6 +39,8 @@ test.describe("마감된 투표", () => {
 
     await expect(page.locator("form").getByRole("alert")).toHaveText("마감된 투표입니다.");
     await expect(page).toHaveURL(new RegExp(`/polls/${id}$`));
+    await expect(page.getByRole("button", { name: "투표하기" })).toBeDisabled();
+    await expect(page.getByRole("radio", { name: "가" })).toBeDisabled();
   });
 
   test("목록에는 '마감됨', 결과 화면에는 '마감된 투표입니다'가 보인다", async ({ page, request }) => {

@@ -7,14 +7,17 @@ import type { PollOption } from "@/lib/polls";
 type Props = {
   pollId: string;
   options: PollOption[];
-  closed: boolean;
+  isClosed: boolean;
 };
 
-export function VoteForm({ pollId, options, closed }: Props) {
+export function VoteForm({ pollId, options, isClosed }: Props) {
   const router = useRouter();
   const [selected, setSelected] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  // 화면을 연 뒤 마감되어 서버가 409로 거부하면 폼도 잠근다.
+  const [closedAfterLoad, setClosedAfterLoad] = useState(false);
+  const closed = isClosed || closedAfterLoad;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -32,6 +35,7 @@ export function VoteForm({ pollId, options, closed }: Props) {
     });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
+      if (res.status === 409) setClosedAfterLoad(true);
       setError(body.error ?? "표를 던지지 못했습니다.");
       setSubmitting(false);
       return;
