@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
+import { LogoutButton } from "@/components/logout-button";
+import { isOperator } from "@/lib/operator";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,7 +20,9 @@ export const metadata: Metadata = {
   description: "질문을 올리고 선택지 하나를 골라 투표하는 간단한 투표 앱",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const operator = await isOperator();
+
   return (
     <html
       lang="ko"
@@ -30,9 +34,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <Link href="/" className="text-lg font-semibold">
               투표 앱
             </Link>
-            <Link href="/new" className="text-sm underline underline-offset-4">
-              투표 만들기
-            </Link>
+            {operator ? (
+              <nav className="flex items-center gap-4">
+                <Link href="/new" className="text-sm underline underline-offset-4">
+                  투표 만들기
+                </Link>
+                <LogoutButton />
+              </nav>
+            ) : (
+              <Link href="/login" className="text-sm underline underline-offset-4">
+                운영자 로그인
+              </Link>
+            )}
           </div>
         </header>
         <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-8">{children}</main>
