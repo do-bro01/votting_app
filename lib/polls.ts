@@ -95,3 +95,23 @@ export async function getResults(id: string): Promise<PollResults | null> {
     })),
   };
 }
+
+export type CastVoteResult = "ok" | "poll-not-found" | "option-not-in-poll";
+
+export async function castVote(pollId: string, optionId: unknown): Promise<CastVoteResult> {
+  if (!isUuid(pollId)) return "poll-not-found";
+  const sql = db();
+
+  if (typeof optionId === "string" && isUuid(optionId)) {
+    // 득표수는 DB 안에서 원자적으로 1 올린다. 동시에 던진 표도 사라지지 않는다.
+    const updated = await sql`
+      update options set vote_count = vote_count + 1
+      where id = ${optionId} and poll_id = ${pollId}
+      returning id
+    `;
+    if (updated.length > 0) return "ok";
+  }
+
+  const polls = await sql`select 1 from polls where id = ${pollId}`;
+  return polls.length === 0 ? "poll-not-found" : "option-not-in-poll";
+}
