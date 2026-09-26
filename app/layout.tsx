@@ -36,6 +36,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           </div>
         </header>
         <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-8">{children}</main>
+        <footer className="border-t border-black/10 py-4 text-center text-sm text-zinc-600 dark:border-white/15 dark:text-zinc-400">
+          김도형
+        </footer>
       </body>
     </html>
   );
