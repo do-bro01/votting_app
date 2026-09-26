@@ -44,6 +44,7 @@ Status: ready-for-agent
   - 입장 세션 모듈(server-only): 현재 요청이 구성원인가, 입장 쿠키 설정·삭제, 구성원 전용 API 앞의 401 가드, 돌아갈 주소 정리(URL 파싱 후 출처 확인).
 - **Proxy(`proxy.ts`)**: 정적 파일(`_next/static`, `_next/image`, `favicon.ico`)과 입장 화면(`/login`), 입장·나가기 API(`/api/login`, `/api/logout`)를 뺀 모든 요청에서 입장 쿠키를 확인한다. 구성원이 아니면 화면 요청은 `/login?next=<원래 경로+검색 파라미터>`로 리다이렉트, `/api/*`는 401 `{ error: "비밀번호를 입력해 주세요." }`.
 - **Route Handler 재확인**: 투표 조회·만들기·삭제·표 던지기 API는 Proxy와 별개로 각 Handler에서도 구성원인지 확인해 401을 돌려준다(Proxy matcher가 바뀌어도 뚫리지 않게).
+- **화면 재확인**: 목록·만들기·투표하기·결과 화면도 투표 데이터를 읽기 전에 구성원인지 확인하고, 아니면 입장 화면으로 보낸다. (code-review에서 Next 인증 가이드의 "Proxy만으로 막지 말 것"에 따라 추가)
 - **API 경로 변경**: `/api/operator/login` → `/api/login`, `/api/operator/logout` → `/api/logout`. 요청·응답 형식과 상태 코드(400/401/200)는 그대로.
 - **화면**
   - `/login`: 제목 "투표 앱", 안내 "비밀번호를 입력해야 들어갈 수 있습니다.", 입력칸 라벨 "입장 비밀번호", 버튼 "입장". 성공 시 돌아갈 주소로 이동 후 새로 그린다.

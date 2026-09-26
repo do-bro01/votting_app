@@ -1,8 +1,8 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Browser, type Page } from "@playwright/test";
 import { ANONYMOUS, createPollViaApi, db, testQuestion } from "./support";
 
 // 투표는 구성원(기본 저장 상태)의 request로 만들고, 입장하지 않은 브라우저에서 확인한다.
-async function anonymousPage(browser: import("@playwright/test").Browser) {
+async function anonymousPage(browser: Browser) {
   const context = await browser.newContext({ storageState: ANONYMOUS });
   return { context, page: await context.newPage() };
 }
@@ -68,6 +68,7 @@ test.describe("입장하지 않은 사람", () => {
     expect(voted.status()).toBe(401);
 
     expect((await anon.delete(`/api/polls/${id}`)).status()).toBe(401);
+    expect(await db()`select 1 from polls where id = ${id}`).toHaveLength(1);
 
     const after = await db()`select sum(vote_count)::int as total from options where poll_id = ${id}`;
     expect(after[0].total).toBe(0);
@@ -83,14 +84,22 @@ test.describe("입장하지 않은 사람", () => {
 });
 
 test.describe("구성원", () => {
-  test("'나가기'를 누르면 입장 화면으로 가고, 다시 목록으로 가도 입장 화면이 나온다", async ({ browser }) => {
+  test("'나가기'를 누르면 입장 화면으로 가고, 뒤로 가기나 주소 입력으로 돌아가도 입장 화면이 나온다", async ({ browser, request }) => {
+    const question = testQuestion("나간 뒤 뒤로 가기");
+    const id = await createPollViaApi(request, question, ["가", "나"]);
     const { context, page } = await anonymousPage(browser);
-    await page.goto("/");
+    await page.goto(`/polls/${id}`);
     await enter(page);
+    await expect(page.getByRole("heading", { name: question })).toBeVisible();
+    await page.getByRole("link", { name: "투표 앱" }).click();
     await expect(page).toHaveURL(/\/$/);
 
     await page.getByRole("banner").getByRole("button", { name: "나가기" }).click();
     await expect(page).toHaveURL(/\/login\?next=%2F$/);
+
+    await page.goBack();
+    await expect(page).toHaveURL(/\/login/);
+    await expect(page.getByText(question)).toHaveCount(0);
 
     await page.goto("/");
     await expect(page).toHaveURL(/\/login\?next=%2F$/);

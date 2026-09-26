@@ -2,6 +2,9 @@ import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 
 // 입장 비밀번호(Entry Password)와 입장 쿠키 서명 (ADR-0004).
 // next/headers에 의존하지 않는 순수 모듈이라 Proxy와 서버 코드가 함께 쓴다.
+// Proxy에서도 import하므로 "server-only"를 붙이지 않았다. 클라이언트 컴포넌트에서 import하지 말 것.
+
+export const ENTRY_REQUIRED = "비밀번호를 입력해 주세요.";
 // 쿠키에는 비밀번호가 아니라 비밀번호로 만든 서명값을 담으므로, 비밀번호를 바꾸면 모든 입장이 무효가 된다.
 
 export const ENTRY_COOKIE = "entry_session";

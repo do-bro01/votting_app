@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import { ClosingTime } from "@/components/closing-time";
+import { requireMember } from "@/lib/member-session";
 import { listPolls } from "@/lib/polls";
 
 export default async function Home() {
   await connection();
+  await requireMember();
   const polls = await listPolls();
 
   return (

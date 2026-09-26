@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { requireMember } from "@/lib/member-session";
 import { getResults } from "@/lib/polls";
 import { ClosedNotice } from "../closed-notice";
 import { ResultsChart } from "./results-chart";
 
 export default async function ResultsPage({ params }: PageProps<"/polls/[id]/results">) {
+  await requireMember();
   const { id } = await params;
   const results = await getResults(id);
   if (!results) notFound();

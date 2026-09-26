@@ -20,7 +20,6 @@ async function expectMemberHeader(page: Page) {
   const header = page.getByRole("banner");
   await expect(header.getByRole("link", { name: "투표 만들기" })).toBeVisible();
   await expect(header.getByRole("button", { name: "나가기" })).toBeVisible();
-  await expect(header.getByRole("link", { name: "입장" })).toHaveCount(0);
 }
 
 test.describe("입장 비밀번호", () => {

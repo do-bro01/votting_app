@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ClosingTime } from "@/components/closing-time";
+import { requireMember } from "@/lib/member-session";
 import { getPoll } from "@/lib/polls";
 import { ClosedNotice } from "./closed-notice";
 import { DeletePollButton } from "./delete-poll-button";
 import { VoteForm } from "./vote-form";
 
 export default async function PollPage({ params }: PageProps<"/polls/[id]">) {
+  await requireMember();
   const { id } = await params;
   const poll = await getPoll(id);
   if (!poll) notFound();

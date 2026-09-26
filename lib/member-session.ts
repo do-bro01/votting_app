@@ -1,6 +1,7 @@
 import "server-only";
 import { cookies } from "next/headers";
-import { ENTRY_COOKIE, entrySignature, isValidEntrySignature } from "./entry-signature";
+import { redirect } from "next/navigation";
+import { ENTRY_COOKIE, ENTRY_REQUIRED, entrySignature, isValidEntrySignature } from "./entry-password";
 
 // 구성원(Member)의 입장 세션. 브라우저를 닫을 때까지 유지되는 쿠키 하나로 판단한다 (ADR-0004).
 
@@ -8,10 +9,16 @@ export async function isMember() {
   return isValidEntrySignature((await cookies()).get(ENTRY_COOKIE)?.value);
 }
 
+// 화면에서 투표 데이터를 읽기 전에 부른다. 평소엔 Proxy가 먼저 막지만,
+// Proxy 설정이 바뀌어도 데이터가 새지 않도록 데이터 가까이에서 한 번 더 확인한다.
+export async function requireMember() {
+  if (!(await isMember())) redirect("/login");
+}
+
 // 구성원만 쓸 수 있는 API 앞에서 부른다. 구성원이 아니면 돌려줄 401 응답, 구성원이면 null.
 export async function memberRequired(): Promise<Response | null> {
   if (await isMember()) return null;
-  return Response.json({ error: "비밀번호를 입력해 주세요." }, { status: 401 });
+  return Response.json({ error: ENTRY_REQUIRED }, { status: 401 });
 }
 
 export async function startEntrySession() {
