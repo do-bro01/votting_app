@@ -108,7 +108,7 @@ export async function getResults(id: string): Promise<PollResults | null> {
   };
 }
 
-export type CastVoteResult = "ok" | "poll-not-found" | "option-not-in-poll";
+export type CastVoteResult = "ok" | "poll-not-found" | "poll-closed" | "option-not-in-poll";
 
 export async function castVote(pollId: string, optionId: unknown): Promise<CastVoteResult> {
   if (!isUuid(pollId)) return "poll-not-found";
@@ -116,14 +116,20 @@ export async function castVote(pollId: string, optionId: unknown): Promise<CastV
 
   if (typeof optionId === "string" && isUuid(optionId)) {
     // 득표수는 DB 안에서 원자적으로 1 올린다. 동시에 던진 표도 사라지지 않는다.
+    // 마감 확인도 같은 쿼리에서 해서, 확인과 증가 사이에 마감되어도 표가 들어가지 않는다.
     const updated = await sql`
-      update options set vote_count = vote_count + 1
-      where id = ${optionId} and poll_id = ${pollId}
-      returning id
+      update options set vote_count = options.vote_count + 1
+      from polls
+      where options.id = ${optionId}
+        and options.poll_id = ${pollId}
+        and polls.id = options.poll_id
+        and (polls.closes_at is null or polls.closes_at > now())
+      returning options.id
     `;
     if (updated.length > 0) return "ok";
   }
 
-  const polls = await sql`select 1 from polls where id = ${pollId}`;
-  return polls.length === 0 ? "poll-not-found" : "option-not-in-poll";
+  const polls = await sql.query(`select ${POLL_COLUMNS} from polls where id = $1`, [pollId]);
+  if (polls.length === 0) return "poll-not-found";
+  return polls[0].is_closed ? "poll-closed" : "option-not-in-poll";
 }

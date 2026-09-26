@@ -24,9 +24,16 @@ export default async function Home() {
               key={poll.id}
               className="flex flex-col gap-2 rounded-lg border border-black/10 p-4 dark:border-white/15"
             >
-              <span data-testid="poll-question" className="font-medium">
-                {poll.question}
-              </span>
+              <div className="flex items-start justify-between gap-3">
+                <span data-testid="poll-question" className="font-medium">
+                  {poll.question}
+                </span>
+                {poll.isClosed && (
+                  <span className="shrink-0 rounded-full bg-zinc-200 px-2 py-0.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                    마감됨
+                  </span>
+                )}
+              </div>
               {poll.closesAt && (
                 <span className="text-sm text-zinc-600 dark:text-zinc-400">
                   마감: {formatKst(poll.closesAt)}

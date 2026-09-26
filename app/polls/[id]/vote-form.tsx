@@ -7,9 +7,10 @@ import type { PollOption } from "@/lib/polls";
 type Props = {
   pollId: string;
   options: PollOption[];
+  closed: boolean;
 };
 
-export function VoteForm({ pollId, options }: Props) {
+export function VoteForm({ pollId, options, closed }: Props) {
   const router = useRouter();
   const [selected, setSelected] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +41,7 @@ export function VoteForm({ pollId, options }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-      <fieldset className="flex flex-col gap-2">
+      <fieldset disabled={closed} className="flex flex-col gap-2 disabled:opacity-60">
         <legend className="sr-only">선택지</legend>
         {options.map((option) => (
           <label
@@ -67,7 +68,7 @@ export function VoteForm({ pollId, options }: Props) {
 
       <button
         type="submit"
-        disabled={submitting}
+        disabled={submitting || closed}
         className="rounded-md bg-foreground px-4 py-2 font-medium text-background disabled:opacity-60"
       >
         투표하기
